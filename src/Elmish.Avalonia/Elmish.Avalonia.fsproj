@@ -17,7 +17,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/elmish/Elmish.WPF</PackageProjectUrl>
     <PackageTags>Avalonia F# fsharp Elmish Elm</PackageTags>
-    <PackageIcon>elmish-avalonia-logo-128x128.png</PackageIcon>
+    <!--<PackageIcon>elmish-avalonia-logo-128x128.png</PackageIcon>-->
     <Version>4.0.0-beta-45</Version>
     <PackageReleaseNotes>https://github.com/elmish/Elmish.WPF/blob/master/RELEASE_NOTES.md</PackageReleaseNotes>
     <!--Turn on warnings for unused values (arguments and let bindings) -->

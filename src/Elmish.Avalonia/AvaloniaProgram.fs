@@ -1,9 +1,12 @@
 ﻿namespace Elmish.Avalonia
 
-open System.Windows
+open Avalonia
+open Avalonia.Controls
+open Avalonia.Threading
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Logging.Abstractions
 open Elmish
+
 
 
 type AvaloniaProgram<'model, 'msg> =
@@ -51,7 +54,7 @@ module AvaloniaProgram =
   /// specified FrameworkElement. Non-blocking. If you have an explicit entry point where
   /// you control app/window instantiation, runWindowWithConfig might be a better option.
   let startElmishLoop
-      (element: FrameworkElement)
+      (element: Avalonia.Controls.Window)
       (program: AvaloniaProgram<'model, 'msg>) =
     let mutable viewModel = None
 
@@ -72,10 +75,10 @@ module AvaloniaProgram =
      *)
     let mutable dispatch = Unchecked.defaultof<Dispatch<'msg>>
 
-    let setState model _ =
+    let setState model _ =      
       match viewModel with
       | None ->
-          let uiDispatch msg = element.Dispatcher.Invoke(fun () -> dispatch msg)
+          let uiDispatch msg = Dispatcher.UIThread.InvokeAsync(fun () -> dispatch msg) |> ignore
           let args =
             { initialModel = model
               dispatch = uiDispatch
@@ -97,7 +100,7 @@ module AvaloniaProgram =
        * This avoids race conditions like those that can occur when shutting down.
        * https://github.com/elmish/Elmish.Avalonia/issues/353
        *)
-      fun msg -> element.Dispatcher.InvokeAsync(fun () -> innerDispatch msg) |> ignore
+      fun msg ->  Dispatcher.UIThread.InvokeAsync(fun () -> innerDispatch msg) |> ignore
 
     let logMsgAndModel (msg: 'msg) (model: 'model) _ =
       updateLogger.LogTrace("New message: {Message}\nUpdated state:\n{Model}", msg, model)
@@ -118,7 +121,11 @@ module AvaloniaProgram =
   let private initializeApplication window =
     if isNull Application.Current then
       Application () |> ignore
-      Application.Current.MainWindow <- window
+      Application.Current.RunWithMainWindow()
+      match Application.Current.ApplicationLifetime with
+      | :? Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
+        desktopLifetime.MainWindow <- window
+      | _ -> ()
 
 
   /// Starts the Elmish and Avalonia dispatch loops. Will instantiate Application and set its
