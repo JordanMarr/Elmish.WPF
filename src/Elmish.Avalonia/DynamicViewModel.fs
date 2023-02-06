@@ -107,7 +107,7 @@ type [<AllowNullLiteral>] internal DynamicViewModel<'model, 'msg>
         bindings: Binding<'model, 'msg> list)
       as this =
   inherit DynamicObject()
-
+  
   let { initialModel = initialModel
         dispatch = dispatch
         loggingArgs = loggingArgs

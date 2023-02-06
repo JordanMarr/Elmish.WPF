@@ -78,7 +78,8 @@ module AvaloniaProgram =
     let setState model _ =      
       match viewModel with
       | None ->
-          let uiDispatch msg = Dispatcher.UIThread.InvokeAsync(fun () -> dispatch msg) |> ignore
+          //let uiDispatch msg = element.Dispatcher.Invoke(fun () -> dispatch msg)
+          let uiDispatch msg = Dispatcher.UIThread.Post(fun () -> dispatch msg) |> ignore
           let args =
             { initialModel = model
               dispatch = uiDispatch
@@ -121,6 +122,7 @@ module AvaloniaProgram =
   let private initializeApplication window =
     if isNull Application.Current then
       Application () |> ignore
+      //Application.Current.MainWindow <- window
       Application.Current.RunWithMainWindow()
       match Application.Current.ApplicationLifetime with
       | :? Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
