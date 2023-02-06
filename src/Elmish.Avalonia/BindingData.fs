@@ -2,7 +2,7 @@
 module internal Elmish.Avalonia.BindingData
 
 open System.Collections.ObjectModel
-open System.Windows
+open Avalonia.Controls
 
 open Elmish
 

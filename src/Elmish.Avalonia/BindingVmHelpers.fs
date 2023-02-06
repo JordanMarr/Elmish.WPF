@@ -1,11 +1,13 @@
 module internal Elmish.Avalonia.BindingVmHelpers
 
 open System
-open System.Windows
+open Avalonia.Controls
+open Avalonia.Threading
 open Microsoft.Extensions.Logging
 
 open Elmish
 
+type Visibility = bool
 
 type UpdateData =
   | ErrorsChanged of string
@@ -46,14 +48,15 @@ module Helpers2 =
      * Invoking asynchronously since ShowDialog is a blocking call. Otherwise,
      * invoking ShowDialog synchronously blocks the Elmish dispatch loop.
      *)
-    win.Dispatcher.InvokeAsync(fun () ->
+    //win.Dispatcher.InvokeAsync(fun () ->
+    Dispatcher.UIThread.InvokeAsync(fun () ->
       win.DataContext <- dataContext
       win.Closing.Add(fun ev ->
         ev.Cancel <- preventClose.Value
         getCurrentModel () |> onCloseRequested |> ValueOption.iter dispatch
       )
       if isDialog then
-        win.ShowDialog () |> ignore
+        win.ShowDialog (owner = null) |> ignore
       else
         (*
          * Calling Show achieves the same end result as setting Visibility
@@ -67,7 +70,7 @@ module Helpers2 =
          * returns immediately
          * https://docs.microsoft.com/en-us/dotnet/api/system.windows.window.show
          *)
-        win.Visibility <- initialVisibility
+        win.IsVisible <- initialVisibility
     ) |> ignore
 
   let measure (logPerformance: ILogger) (performanceLogThresholdMs: int) (name: string) (nameChain: string) (callName: string) f =
@@ -355,7 +358,7 @@ type Initialize<'t>
               let winRef = WeakReference<_>(null)
               let preventClose = ref true
               log.LogTrace("[{BindingNameChain}] Creating hidden window", chain)
-              Helpers2.showNewWindow winRef d.GetWindow d.IsModal d.OnCloseRequested preventClose vm Visibility.Hidden getCurrentModel dispatch
+              Helpers2.showNewWindow winRef d.GetWindow d.IsModal d.OnCloseRequested preventClose vm false getCurrentModel dispatch
               let mutable vmWinState = WindowState.Hidden vm
               { SubModelWinData = d
                 Dispatch = dispatch
@@ -372,7 +375,7 @@ type Initialize<'t>
               let winRef = WeakReference<_>(null)
               let preventClose = ref true
               log.LogTrace("[{BindingNameChain}] Creating visible window", chain)
-              Helpers2.showNewWindow winRef d.GetWindow d.IsModal d.OnCloseRequested preventClose vm Visibility.Visible getCurrentModel dispatch
+              Helpers2.showNewWindow winRef d.GetWindow d.IsModal d.OnCloseRequested preventClose vm true getCurrentModel dispatch
               let mutable vmWinState = WindowState.Visible vm
               { SubModelWinData = d
                 Dispatch = dispatch
@@ -524,7 +527,7 @@ type Update<'t>
                  * queue a call to Window.Close via Dispatcher.InvokeAsync.
                  * https://github.com/elmish/Elmish.WPF/issues/330
                  *)
-                w.Dispatcher.InvokeAsync(w.Close) |> ignore
+                Dispatcher.UIThread.InvokeAsync(w.Close) |> ignore
             b.WinRef.SetTarget null
 
           let hide () =
@@ -533,7 +536,8 @@ type Update<'t>
                 log.LogError("[{BindingNameChain}] Attempted to hide window, but did not find window reference", winPropChain)
             | true, w ->
                 log.LogTrace("[{BindingNameChain}] Hiding window", winPropChain)
-                w.Dispatcher.Invoke(fun () -> w.Visibility <- Visibility.Hidden)
+                Dispatcher.UIThread.Post(fun () -> w.IsVisible <- false)
+                //w.Dispatcher.Invoke(fun () -> w.Visibility <- Visibility.Hidden)
 
           let showHidden () =
             match b.WinRef.TryGetTarget () with
@@ -541,7 +545,8 @@ type Update<'t>
                 log.LogError("[{BindingNameChain}] Attempted to show existing hidden window, but did not find window reference", winPropChain)
             | true, w ->
                 log.LogTrace("[{BindingNameChain}] Showing existing hidden window", winPropChain)
-                w.Dispatcher.Invoke(fun () -> w.Visibility <- Visibility.Visible)
+                Dispatcher.UIThread.Post(fun () -> w.IsVisible <- true)
+                //w.Dispatcher.Invoke(fun () -> w.Visibility <- Visibility.Visible)
 
           let showNew vm =
             b.PreventClose.Value <- true
@@ -578,13 +583,13 @@ type Update<'t>
           | WindowState.Closed, WindowState.Hidden m ->
               let vm = newVm m
               log.LogTrace("[{BindingNameChain}] Creating hidden window", winPropChain)
-              showNew vm Visibility.Hidden b.GetCurrentModel b.Dispatch
+              showNew vm false b.GetCurrentModel b.Dispatch
               b.SetVmWinState (WindowState.Hidden vm)
               [ PropertyChanged name ]
           | WindowState.Closed, WindowState.Visible m ->
               let vm = newVm m
               log.LogTrace("[{BindingNameChain}] Creating visible window", winPropChain)
-              showNew vm Visibility.Visible b.GetCurrentModel b.Dispatch
+              showNew vm true b.GetCurrentModel b.Dispatch
               b.SetVmWinState (WindowState.Visible vm)
               [ PropertyChanged name ]
       | SubModelSeqUnkeyed b ->
