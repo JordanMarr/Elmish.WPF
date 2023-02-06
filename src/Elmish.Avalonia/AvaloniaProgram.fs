@@ -54,7 +54,7 @@ module AvaloniaProgram =
   /// specified FrameworkElement. Non-blocking. If you have an explicit entry point where
   /// you control app/window instantiation, runWindowWithConfig might be a better option.
   let startElmishLoop
-      (element: Avalonia.Controls.Window)
+      (element: StyledElement)
       (program: AvaloniaProgram<'model, 'msg>) =
     let mutable viewModel = None
 
