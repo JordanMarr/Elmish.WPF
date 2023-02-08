@@ -24,6 +24,14 @@ and Accessor(reference : WeakReference<obj>, property : string) =
 
     let mutable eventRaised = false
 
+    //interface INotifyPropertyChanged with
+    //  [<CLIEvent>]
+    //  member __.PropertyChanged = PropertyChangedEventHandler(fun sender e -> ())
+    //let propertyChanged = EventHandler<PropertyChangedEventArgs>(fun sender e ->
+    //  printfn "Property Changed!"
+    //)
+    let mutable onPropertyChanged : IDisposable option = None
+
     interface IWeakEventSubscriber<PropertyChangedEventArgs> with
         member __.OnEvent(_, _, e) = 
             if e.PropertyName = property || String.IsNullOrEmpty(e.PropertyName) then
@@ -67,8 +75,7 @@ and Accessor(reference : WeakReference<obj>, property : string) =
     override __.UnsubscribeCore() =
         match reference.TryGetTarget() with
         | true, target ->
-            ()
-            // TODO: Fix so subscriptions work
+            onPropertyChanged |> Option.iter (fun sub -> sub.Dispose())
             //match target with
             //| :? INotifyPropertyChanged as inpc -> 
             //    WeakEventHandlerManager.Unsubscribe(
@@ -87,13 +94,17 @@ and Accessor(reference : WeakReference<obj>, property : string) =
     member __.SubscribeToChanges() = 
         match reference.TryGetTarget() with
         | true, target ->
-            ()
-            // TODO: Fix so subscriptions work
-            //match target with
-            //| :? INotifyPropertyChanged as inpc ->
-            //    WeakEventHandlerManager.Subscribe(
-            //        inpc,
-            //        nameof(inpc.PropertyChanged),
-            //        (fun sender e -> ()))
-            //| _ -> ()
+            match target with
+            | :? INotifyPropertyChanged as inpc ->
+                onPropertyChanged <-
+                  inpc.PropertyChanged.Subscribe(fun e ->
+                    __.SendCurrentValue()
+                  )
+                  |> Some
+                //WeakEventHandlerManager.Subscribe(
+                //    inpc,
+                //    nameof(inpc.PropertyChanged),
+                //    //propertyChanged)
+                //    (fun sender e ->()))
+            | _ -> ()
         | _ -> ()
