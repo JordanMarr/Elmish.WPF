@@ -18,15 +18,14 @@ type Binding<'model, 'msg> =
 [<AutoOpen>]
 module internal Helpers =
 
-  let createBinding data name =
-    { Name = name
-      Data = data }
+  let createBinding data name = { Name = name; Data = data }
 
   type SubModelSelectedItemLast with
     member this.CompareBindings() : Binding<'model, 'msg> -> Binding<'model, 'msg> -> int =
       fun a b -> this.Recursive(a.Data) - this.Recursive(b.Data)
 
-type [<AllowNullLiteral>] IViewModel<'model, 'msg> =
+[<AllowNullLiteral>]
+type IViewModel<'model, 'msg> =
   abstract member CurrentModel: 'model
   abstract member UpdateModel: 'model -> unit
 
@@ -50,15 +49,22 @@ type internal ViewModelHelper<'model, 'msg> =
   interface INotifyDataErrorInfo with
     [<CLIEvent>]
     member x.ErrorsChanged = x.ErrorsChanged.Publish
+
     member x.HasErrors =
       // WPF calls this too often, so don't log https://github.com/elmish/Elmish.WPF/issues/354
       x.ValidationErrors
-      |> Seq.map (fun (Kvp(_, errors)) -> errors.Value)
+      |> Seq.map (fun (Kvp (_, errors)) -> errors.Value)
       |> Seq.filter (not << List.isEmpty)
       |> (not << Seq.isEmpty)
+
     member x.GetErrors name =
-      let name = name |> Option.ofObj |> Option.defaultValue "<null>" // entity-level errors are being requested when given null or ""  https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.inotifydataerrorinfo.geterrors#:~:text=null%20or%20Empty%2C%20to%20retrieve%20entity-level%20errors
+      let name =
+        name
+        |> Option.ofObj
+        |> Option.defaultValue "<null>" // entity-level errors are being requested when given null or ""  https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.inotifydataerrorinfo.geterrors#:~:text=null%20or%20Empty%2C%20to%20retrieve%20entity-level%20errors
+
       x.LoggingArgs.log.LogTrace("[{BindingNameChain}] GetErrors {BindingName}", x.LoggingArgs.nameChain, name)
+
       x.ValidationErrors
       |> IReadOnlyDictionary.tryFind name
       |> Option.map (fun errors -> errors.Value)
@@ -67,55 +73,58 @@ type internal ViewModelHelper<'model, 'msg> =
 
 module internal ViewModelHelper =
 
-  let create getSender args bindings validationErrors ={
-    GetSender = getSender
-    LoggingArgs = args.loggingArgs
-    Model = args.initialModel
-    ValidationErrors = validationErrors
-    Bindings = bindings
-    PropertyChanged = Event<PropertyChangedEventHandler, PropertyChangedEventArgs>()
-    ErrorsChanged = DelegateEvent<EventHandler<DataErrorsChangedEventArgs>>()
-  }
+  let create getSender args bindings validationErrors =
+    { GetSender = getSender
+      LoggingArgs = args.loggingArgs
+      Model = args.initialModel
+      ValidationErrors = validationErrors
+      Bindings = bindings
+      PropertyChanged = Event<PropertyChangedEventHandler, PropertyChangedEventArgs>()
+      ErrorsChanged = DelegateEvent<EventHandler<DataErrorsChangedEventArgs>>() }
 
   let getEventsToRaise newModel helper =
     helper.Bindings
-      |> Seq.collect (fun (Kvp (name, binding)) -> Update(helper.LoggingArgs, name).Recursive(helper.Model, newModel, binding))
-      |> Seq.toList
+    |> Seq.collect (fun (Kvp (name, binding)) ->
+      Update(helper.LoggingArgs, name)
+        .Recursive(helper.Model, newModel, binding))
+    |> Seq.toList
 
   let raiseEvents eventsToRaise helper =
-    let {
-      log = log
-      nameChain = nameChain } = helper.LoggingArgs
+    let { log = log; nameChain = nameChain } = helper.LoggingArgs
 
     let raisePropertyChanged name =
       log.LogTrace("[{BindingNameChain}] PropertyChanged {BindingName}", nameChain, name)
-      helper.PropertyChanged.Trigger(helper.GetSender (), PropertyChangedEventArgs name)
-    let raiseCanExecuteChanged (cmd: Command) =
-      cmd.RaiseCanExecuteChanged ()
+      helper.PropertyChanged.Trigger(helper.GetSender(), PropertyChangedEventArgs name)
+
+    let raiseCanExecuteChanged (cmd: Command) = cmd.RaiseCanExecuteChanged()
+
     let raiseErrorsChanged name =
       log.LogTrace("[{BindingNameChain}] ErrorsChanged {BindingName}", nameChain, name)
-      helper.ErrorsChanged.Trigger([| helper.GetSender (); box <| DataErrorsChangedEventArgs name |])
-    
+
+      helper.ErrorsChanged.Trigger(
+        [| helper.GetSender()
+           box <| DataErrorsChangedEventArgs name |]
+      )
+
     eventsToRaise
     |> List.iter (function
       | ErrorsChanged name -> raiseErrorsChanged name
       | PropertyChanged name -> raisePropertyChanged name
       | CanExecuteChanged cmd -> cmd |> raiseCanExecuteChanged)
 
-type [<AllowNullLiteral>] internal DynamicViewModel<'model, 'msg>
-      ( args: ViewModelArgs<'model, 'msg>,
-        bindings: Binding<'model, 'msg> list)
-      as this =
+type [<AllowNullLiteral>] internal IGetMemberByName =
+    abstract member GetMemberByName: string -> obj
+
+[<AllowNullLiteral>]
+type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, bindings: Binding<'model, 'msg> list) as this =
   inherit DynamicObject()
-  
+
   let { initialModel = initialModel
         dispatch = dispatch
-        loggingArgs = loggingArgs
-      } = args
+        loggingArgs = loggingArgs } =
+    args
 
-  let { log = log
-        nameChain = nameChain
-      } = loggingArgs
+  let { log = log; nameChain = nameChain } = loggingArgs
 
   let (bindings, validationErrors) =
     let getFunctionsForSubModelSelectedItem initializedBindings (name: string) =
@@ -125,10 +134,20 @@ type [<AllowNullLiteral>] internal DynamicViewModel<'model, 'msg>
         | Some b ->
           match FuncsFromSubModelSeqKeyed().Recursive(b) with
           | Some x -> Some x
-          | None -> log.LogError("SubModelSelectedItem binding referenced binding {SubModelSeqBindingName} but it is not a SubModelSeq binding", name)
-                    None
-        | None -> log.LogError("SubModelSelectedItem binding referenced binding {SubModelSeqBindingName} but no binding was found with that name", name)
-                  None
+          | None ->
+            log.LogError(
+              "SubModelSelectedItem binding referenced binding {SubModelSeqBindingName} but it is not a SubModelSeq binding",
+              name
+            )
+
+            None
+        | None ->
+          log.LogError(
+            "SubModelSelectedItem binding referenced binding {SubModelSeqBindingName} but no binding was found with that name",
+            name
+          )
+
+          None
 
     let initializeBinding initializedBindings binding =
       Initialize(loggingArgs, binding.Name, getFunctionsForSubModelSelectedItem initializedBindings)
@@ -142,6 +161,7 @@ type [<AllowNullLiteral>] internal DynamicViewModel<'model, 'msg>
     let sortedBindings =
       bindings
       |> List.sortWith (SubModelSelectedItemLast().CompareBindings())
+
     for b in sortedBindings do
       if bindingDict.ContainsKey b.Name then
         log.LogError("Binding name {BindingName} is duplicated. Only the first occurrence will be used.", b.Name)
@@ -152,66 +172,144 @@ type [<AllowNullLiteral>] internal DynamicViewModel<'model, 'msg>
           let! errorList = FirstValidationErrors().Recursive(vmBinding)
           do validationDict.Add(b.Name, errorList)
           return ()
-        } |> Option.defaultValue ()
-    (bindingDict    :> IReadOnlyDictionary<_,_>,
-     validationDict :> IReadOnlyDictionary<_,_>)
+        }
+        |> Option.defaultValue ()
+
+    (bindingDict :> IReadOnlyDictionary<_, _>, validationDict :> IReadOnlyDictionary<_, _>)
 
   let mutable helper =
-    ViewModelHelper.create
-      (fun () -> this)
-      args
-      bindings
-      validationErrors
+    ViewModelHelper.create (fun () -> this) args bindings validationErrors
 
   interface IViewModel<'model, 'msg> with
-    member _.CurrentModel : 'model = helper.Model
+    member _.CurrentModel: 'model = helper.Model
 
-    member _.UpdateModel (newModel: 'model) : unit =
+    member _.UpdateModel(newModel: 'model) : unit =
       let eventsToRaise = ViewModelHelper.getEventsToRaise newModel helper
       helper <- { helper with Model = newModel }
       ViewModelHelper.raiseEvents eventsToRaise helper
 
-  override _.TryGetMember (binder, result) =
+  override _.TryGetMember(binder, result) =
     log.LogTrace("[{BindingNameChain}] TryGetMember {BindingName}", nameChain, binder.Name)
+
     match bindings.TryGetValue binder.Name with
     | false, _ ->
-        log.LogError("[{BindingNameChain}] TryGetMember FAILED: Property {BindingName} doesn't exist", nameChain, binder.Name)
-        false
+      log.LogError(
+        "[{BindingNameChain}] TryGetMember FAILED: Property {BindingName} doesn't exist",
+        nameChain,
+        binder.Name
+      )
+
+      false
     | true, binding ->
+      try
+        match Get(nameChain).Recursive(helper.Model, binding) with
+        | Ok v ->
+          result <- v
+          true
+        | Error e ->
+          match e with
+          | GetError.OneWayToSource ->
+            log.LogError(
+              "[{BindingNameChain}] TryGetMember FAILED: Binding {BindingName} is read-only",
+              nameChain,
+              binder.Name
+            )
+          | GetError.SubModelSelectedItem d ->
+            log.LogError(
+              "[{BindingNameChain}] TryGetMember FAILED: Failed to find an element of the SubModelSeq binding {SubModelSeqBindingName} with ID {ID} in the getter for the binding {BindingName}",
+              d.NameChain,
+              d.SubModelSeqBindingName,
+              d.Id,
+              binder.Name
+            )
+          | GetError.ToNullError (ValueOption.ToNullError.ValueCannotBeNull nonNullTypeName) ->
+            log.LogError(
+              "[{BindingNameChain}] TryGetMember FAILED: Binding {BindingName} is null, but type {Type} is non-nullable",
+              nameChain,
+              binder.Name,
+              nonNullTypeName
+            )
+
+          false
+      with
+      | e ->
+        log.LogError(
+          e,
+          "[{BindingNameChain}] TryGetMember FAILED: Exception thrown while processing binding {BindingName}",
+          nameChain,
+          binder.Name
+        )
+
+        reraise ()
+
+  override _.TrySetMember(binder, value) =
+    log.LogTrace("[{BindingNameChain}] TrySetMember {BindingName}", nameChain, binder.Name)
+
+    match bindings.TryGetValue binder.Name with
+    | false, _ ->
+      log.LogError(
+        "[{BindingNameChain}] TrySetMember FAILED: Property {BindingName} doesn't exist",
+        nameChain,
+        binder.Name
+      )
+
+      false
+    | true, binding ->
+      try
+        let success = Set(value).Recursive(helper.Model, binding)
+
+        if not success then
+          log.LogError(
+            "[{BindingNameChain}] TrySetMember FAILED: Binding {BindingName} is read-only",
+            nameChain,
+            binder.Name
+          )
+
+        success
+      with
+      | e ->
+        log.LogError(
+          e,
+          "[{BindingNameChain}] TrySetMember FAILED: Exception thrown while processing binding {BindingName}",
+          nameChain,
+          binder.Name
+        )
+
+        reraise ()
+
+  override _.GetDynamicMemberNames() =
+    log.LogTrace("[{BindingNameChain}] GetDynamicMemberNames", nameChain)
+    bindings.Keys
+
+  interface IGetMemberByName with
+    member _.GetMemberByName(binderName: string) =
+      log.LogTrace("[{BindingNameChain}] TryGetMember {BindingName}", nameChain, binderName)
+
+      match bindings.TryGetValue binderName with
+      | false, _ ->
+        log.LogError(
+          "[{BindingNameChain}] TryGetMember FAILED: Property {BindingName} doesn't exist",
+          nameChain,
+          binderName
+        )
+        failwith $"TryGetMember FAILED: Property {binderName} doesn't exist"
+      | true, binding ->
         try
           match Get(nameChain).Recursive(helper.Model, binding) with
           | Ok v ->
-              result <- v
-              true
-          | Error e ->
-              match e with
-              | GetError.OneWayToSource -> log.LogError("[{BindingNameChain}] TryGetMember FAILED: Binding {BindingName} is read-only", nameChain, binder.Name)
-              | GetError.SubModelSelectedItem d -> log.LogError("[{BindingNameChain}] TryGetMember FAILED: Failed to find an element of the SubModelSeq binding {SubModelSeqBindingName} with ID {ID} in the getter for the binding {BindingName}", d.NameChain, d.SubModelSeqBindingName, d.Id, binder.Name)
-              | GetError.ToNullError (ValueOption.ToNullError.ValueCannotBeNull nonNullTypeName) -> log.LogError("[{BindingNameChain}] TryGetMember FAILED: Binding {BindingName} is null, but type {Type} is non-nullable", nameChain, binder.Name, nonNullTypeName)
-              false
-        with e ->
-          log.LogError(e, "[{BindingNameChain}] TryGetMember FAILED: Exception thrown while processing binding {BindingName}", nameChain, binder.Name)
-          reraise ()
+            v
+          | Error _ ->
+            failwith $"TryGetMember FAILED: Property {binderName} doesn't exist"
 
-  override _.TrySetMember (binder, value) =
-    log.LogTrace("[{BindingNameChain}] TrySetMember {BindingName}", nameChain, binder.Name)
-    match bindings.TryGetValue binder.Name with
-    | false, _ ->
-        log.LogError("[{BindingNameChain}] TrySetMember FAILED: Property {BindingName} doesn't exist", nameChain, binder.Name)
-        false
-    | true, binding ->
-        try
-          let success = Set(value).Recursive(helper.Model, binding)
-          if not success then
-            log.LogError("[{BindingNameChain}] TrySetMember FAILED: Binding {BindingName} is read-only", nameChain, binder.Name)
-          success
-        with e ->
-          log.LogError(e, "[{BindingNameChain}] TrySetMember FAILED: Exception thrown while processing binding {BindingName}", nameChain, binder.Name)
+        with
+        | e ->
+          log.LogError(
+            e,
+            "[{BindingNameChain}] TryGetMember FAILED: Exception thrown while processing binding {BindingName}",
+            nameChain,
+            binderName
+          )
           reraise ()
-
-  override _.GetDynamicMemberNames () =
-    log.LogTrace("[{BindingNameChain}] GetDynamicMemberNames", nameChain)
-    bindings.Keys
 
 
   interface INotifyPropertyChanged with
@@ -221,5 +319,8 @@ type [<AllowNullLiteral>] internal DynamicViewModel<'model, 'msg>
   interface INotifyDataErrorInfo with
     [<CLIEvent>]
     member _.ErrorsChanged = (helper :> INotifyDataErrorInfo).ErrorsChanged
+
     member _.HasErrors = (helper :> INotifyDataErrorInfo).HasErrors
-    member _.GetErrors name = (helper :> INotifyDataErrorInfo).GetErrors name
+
+    member _.GetErrors name =
+      (helper :> INotifyDataErrorInfo).GetErrors name

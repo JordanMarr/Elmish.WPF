@@ -10,7 +10,10 @@ open Avalonia.Utilities
 
 type AvaloniaDynamicPropertyAccessorPlugin() =
     interface IPropertyAccessorPlugin with
-        member __.Match(obj, _) = obj :? IDictionary<string, obj>
+        member __.Match(obj, _) =
+          //obj :? IDictionary<string, obj> // ExpandoObject
+          obj :? IGetMemberByName // DynamicViewModel
+
         member __.Start(reference, propertyName) = 
             Contract.Requires<ArgumentNullException>(reference <> null)
             Contract.Requires<ArgumentNullException>(propertyName <> null)
@@ -32,7 +35,10 @@ and Accessor(reference : WeakReference<obj>, property : string) =
         match reference.TryGetTarget() with
         | true, target -> 
             match target with
-            | :? IDictionary<string, obj> as o ->
+            | :? IGetMemberByName as vm ->
+                vm.GetMemberByName(property)
+            
+            | :? IDictionary<string, obj> as o -> // ExpandoObject
                 match o.TryGetValue(property) with
                 | true, value -> value
                 | _ -> null
@@ -40,7 +46,7 @@ and Accessor(reference : WeakReference<obj>, property : string) =
         | _ -> null
 
     override __.SetValue(value, _) = 
-        match reference.TryGetTarget() with
+        match reference.TryGetTarget() with 
         | true, target -> 
             match target with
             | :? IDictionary<string, obj> as o -> 
@@ -68,7 +74,8 @@ and Accessor(reference : WeakReference<obj>, property : string) =
 
     member __.SendCurrentValue() = 
         try
-            __.PublishValue(__.Value)
+            let value = __.Value
+            __.PublishValue(value)
         with _ -> ()
 
     member __.SubscribeToChanges() = 
