@@ -112,8 +112,9 @@ module internal ViewModelHelper =
       | PropertyChanged name -> raisePropertyChanged name
       | CanExecuteChanged cmd -> cmd |> raiseCanExecuteChanged)
 
-type [<AllowNullLiteral>] internal IGetMemberByName =
+type [<AllowNullLiteral>] internal IDynamicViewModel =
     abstract member GetMemberByName: string -> obj
+    abstract member SetMemberByName: string * obj -> unit
 
 [<AllowNullLiteral>]
 type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, bindings: Binding<'model, 'msg> list) as this =
@@ -281,7 +282,7 @@ type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, 
     log.LogTrace("[{BindingNameChain}] GetDynamicMemberNames", nameChain)
     bindings.Keys
 
-  interface IGetMemberByName with
+  interface IDynamicViewModel with
     member _.GetMemberByName(binderName: string) =
       log.LogTrace("[{BindingNameChain}] TryGetMember {BindingName}", nameChain, binderName)
 
@@ -309,6 +310,37 @@ type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, 
             nameChain,
             binderName
           )
+          reraise ()
+    member _.SetMemberByName(binderName: string, value: obj) =
+      match bindings.TryGetValue binderName with
+      | false, _ ->
+        log.LogError(
+          "[{BindingNameChain}] TrySetMember FAILED: Property {BindingName} doesn't exist",
+          nameChain,
+          binderName
+        )
+
+      | true, binding ->
+        try
+          let success = Set(value).Recursive(helper.Model, binding)
+
+          if not success then
+            log.LogError(
+              "[{BindingNameChain}] TrySetMember FAILED: Binding {BindingName} is read-only",
+              nameChain,
+              binderName
+            )
+            failwith $"TrySetMember FAILED: Binding {binderName} is read-only"
+          
+        with
+        | e ->
+          log.LogError(
+            e,
+            "[{BindingNameChain}] TrySetMember FAILED: Exception thrown while processing binding {BindingName}",
+            nameChain,
+            binderName
+          )
+
           reraise ()
 
 

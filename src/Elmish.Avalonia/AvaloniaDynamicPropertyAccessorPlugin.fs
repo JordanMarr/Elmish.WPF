@@ -12,7 +12,7 @@ type AvaloniaDynamicPropertyAccessorPlugin() =
     interface IPropertyAccessorPlugin with
         member __.Match(obj, _) =
           //obj :? IDictionary<string, obj> // ExpandoObject
-          obj :? IGetMemberByName // DynamicViewModel
+          obj :? IDynamicViewModel
 
         member __.Start(reference, propertyName) = 
             Contract.Requires<ArgumentNullException>(reference <> null)
@@ -30,12 +30,14 @@ and Accessor(reference : WeakReference<obj>, property : string) =
                 eventRaised <- true
                 __.SendCurrentValue()
 
-    override __.PropertyType = typeof<unit>
+    override __.PropertyType =
+      __.Value.GetType()
+
     override __.Value with get() =
         match reference.TryGetTarget() with
         | true, target -> 
             match target with
-            | :? IGetMemberByName as vm ->
+            | :? IDynamicViewModel as vm ->
                 vm.GetMemberByName(property)
             
             | :? IDictionary<string, obj> as o -> // ExpandoObject
@@ -49,6 +51,9 @@ and Accessor(reference : WeakReference<obj>, property : string) =
         match reference.TryGetTarget() with 
         | true, target -> 
             match target with
+            | :? IDynamicViewModel as vm ->
+                vm.SetMemberByName(property, value)
+                true
             | :? IDictionary<string, obj> as o -> 
                 o.[property] <- value
                 true
@@ -61,15 +66,16 @@ and Accessor(reference : WeakReference<obj>, property : string) =
 
     override __.UnsubscribeCore() =
         match reference.TryGetTarget() with
-        | true, target -> 
-            match target with
-            | :? INotifyPropertyChanged as inpc -> 
-                WeakEventHandlerManager.Unsubscribe(
-                    inpc,
-                    nameof(inpc.PropertyChanged),
-                    (fun sender e -> ()))
-            | _ -> ()
-                
+        | true, target ->
+            ()
+            // TODO: Fix so subscriptions work
+            //match target with
+            //| :? INotifyPropertyChanged as inpc -> 
+            //    WeakEventHandlerManager.Unsubscribe(
+            //        inpc,
+            //        nameof(inpc.PropertyChanged),
+            //        (fun sender e -> ()))
+            //| _ -> ()                
         | _ -> ()
 
     member __.SendCurrentValue() = 
@@ -80,12 +86,14 @@ and Accessor(reference : WeakReference<obj>, property : string) =
 
     member __.SubscribeToChanges() = 
         match reference.TryGetTarget() with
-        | true, target -> 
-            match target with
-            | :? INotifyPropertyChanged as inpc ->
-                WeakEventHandlerManager.Subscribe(
-                    inpc,
-                    nameof(inpc.PropertyChanged),
-                    (fun sender e -> ()))
-            | _ -> ()
+        | true, target ->
+            ()
+            // TODO: Fix so subscriptions work
+            //match target with
+            //| :? INotifyPropertyChanged as inpc ->
+            //    WeakEventHandlerManager.Subscribe(
+            //        inpc,
+            //        nameof(inpc.PropertyChanged),
+            //        (fun sender e -> ()))
+            //| _ -> ()
         | _ -> ()
