@@ -14,3 +14,5 @@ type MainView () as this =
         this.AttachDevTools()
 #endif
         AvaloniaXamlLoader.Load(this)
+
+    member this.DesignVM = AvaloniaExample.ViewModels.MainViewModel.designVM
