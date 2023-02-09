@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaExample.Views.MainView"
-        x:Name="Window1"
-        Design.DataContext="{Binding ElementName=Window1, Path=DesignVM}"
+        Design.DataContext="{Binding RelativeSource={RelativeSource Self}, Path=DesignVM}"
         Icon="/Assets/avalonia-logo.ico"
         Title="AvaloniaExample">
 
