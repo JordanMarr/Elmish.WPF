@@ -19,14 +19,7 @@ and Accessor(reference : WeakReference<obj>, property : string) =
     inherit PropertyAccessorBase()
 
     let mutable eventRaised = false
-
-    //interface INotifyPropertyChanged with
-    //  [<CLIEvent>]
-    //  member __.PropertyChanged = PropertyChangedEventHandler(fun sender e -> ())
-    //let propertyChanged = EventHandler<PropertyChangedEventArgs>(fun sender e ->
-    //  printfn "Property Changed!"
-    //)
-    let mutable onPropertyChanged : IDisposable option = None
+    let mutable propertyChangedSubscription : IDisposable option = None
 
     interface IWeakEventSubscriber<PropertyChangedEventArgs> with
         member __.OnEvent(_, _, e) = 
@@ -63,14 +56,10 @@ and Accessor(reference : WeakReference<obj>, property : string) =
     override __.UnsubscribeCore() =
         match reference.TryGetTarget() with
         | true, target ->
-            onPropertyChanged |> Option.iter (fun sub -> sub.Dispose())
-            //match target with
-            //| :? INotifyPropertyChanged as inpc -> 
-            //    WeakEventHandlerManager.Unsubscribe(
-            //        inpc,
-            //        nameof(inpc.PropertyChanged),
-            //        (fun sender e -> ()))
-            //| _ -> ()                
+            match target with
+            | :? INotifyPropertyChanged -> 
+                propertyChangedSubscription |> Option.iter (fun sub -> sub.Dispose())
+            | _ -> ()                
         | _ -> ()
 
     member __.SendCurrentValue() = 
@@ -84,16 +73,11 @@ and Accessor(reference : WeakReference<obj>, property : string) =
         | true, target ->
             match target with
             | :? INotifyPropertyChanged as inpc ->
-                onPropertyChanged <-
-                  inpc.PropertyChanged.Subscribe(fun e ->
-                    __.SendCurrentValue()
-                  )
-                  |> Some
-                //WeakEventHandlerManager.Subscribe(
-                //    inpc,
-                //    nameof(inpc.PropertyChanged),
-                //    //propertyChanged)
-                //    (fun sender e ->()))
+                propertyChangedSubscription <-
+                    inpc.PropertyChanged.Subscribe(fun _ ->
+                        __.SendCurrentValue()
+                    )
+                    |> Some
             | _ -> ()
         | _ -> ()
 
