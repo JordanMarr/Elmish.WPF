@@ -11,5 +11,5 @@ type App() =
         AvaloniaXamlLoader.Load(this)
 
     override this.OnFrameworkInitializationCompleted() =
-        MainWindow() |> ViewModels.MainWindowViewModel.run
+        MainView() |> ViewModels.MainViewModel.run
         base.OnFrameworkInitializationCompleted()

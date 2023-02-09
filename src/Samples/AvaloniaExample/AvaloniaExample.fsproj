@@ -12,9 +12,9 @@
         <None Remove=".gitignore" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Compile Include="ViewModels\MainWindowViewModel.fs" />
-        <Compile Include="Views\MainWindow.axaml.fs" />
+    <ItemGroup>        
+        <Compile Include="ViewModels\MainViewModel.fs" />
+        <Compile Include="Views\MainView.axaml.fs" />
         <Compile Include="App.axaml.fs" />
         <Compile Include="ViewLocator.fs" />
         <Compile Include="Program.fs" />

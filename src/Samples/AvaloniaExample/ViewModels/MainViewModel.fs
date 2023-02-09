@@ -1,4 +1,4 @@
-﻿module AvaloniaExample.ViewModels.MainWindowViewModel
+﻿module AvaloniaExample.ViewModels.MainViewModel
 
 open System
 open Elmish
