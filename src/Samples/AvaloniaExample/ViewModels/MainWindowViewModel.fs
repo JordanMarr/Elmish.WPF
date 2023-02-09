@@ -33,9 +33,12 @@ let bindings ()  : Binding<Model, Msg> list = [
 
 let designVM = ViewModel.designInstance (init() |> fst) (bindings())
 
+let run (view :Avalonia.Controls.Window) = 
+    AvaloniaProgram.mkProgram init update bindings
+    |> AvaloniaProgram.runWindow view
 
 let start (view: Avalonia.Controls.Window) =    
-    AvaloniaProgram.mkProgram init update bindings     
+    AvaloniaProgram.mkProgram init update bindings
     |> AvaloniaProgram.startElmishLoop view
 
 //let create<'View when 'View :> Windows.Controls.UserControl and 'View : (new : unit -> 'View)> () =
