@@ -1,7 +1,6 @@
 ﻿namespace Elmish.Avalonia
 
 open System
-open System.Dynamic
 open System.Collections.Generic
 open System.ComponentModel
 open Microsoft.Extensions.Logging
@@ -118,7 +117,6 @@ type [<AllowNullLiteral>] internal IDynamicViewModel =
 
 [<AllowNullLiteral>]
 type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, bindings: Binding<'model, 'msg> list) as this =
-  inherit DynamicObject()
 
   let { initialModel = initialModel
         dispatch = dispatch
@@ -188,99 +186,6 @@ type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, 
       let eventsToRaise = ViewModelHelper.getEventsToRaise newModel helper
       helper <- { helper with Model = newModel }
       ViewModelHelper.raiseEvents eventsToRaise helper
-
-  override _.TryGetMember(binder, result) =
-    log.LogTrace("[{BindingNameChain}] TryGetMember {BindingName}", nameChain, binder.Name)
-
-    match bindings.TryGetValue binder.Name with
-    | false, _ ->
-      log.LogError(
-        "[{BindingNameChain}] TryGetMember FAILED: Property {BindingName} doesn't exist",
-        nameChain,
-        binder.Name
-      )
-
-      false
-    | true, binding ->
-      try
-        match Get(nameChain).Recursive(helper.Model, binding) with
-        | Ok v ->
-          result <- v
-          true
-        | Error e ->
-          match e with
-          | GetError.OneWayToSource ->
-            log.LogError(
-              "[{BindingNameChain}] TryGetMember FAILED: Binding {BindingName} is read-only",
-              nameChain,
-              binder.Name
-            )
-          | GetError.SubModelSelectedItem d ->
-            log.LogError(
-              "[{BindingNameChain}] TryGetMember FAILED: Failed to find an element of the SubModelSeq binding {SubModelSeqBindingName} with ID {ID} in the getter for the binding {BindingName}",
-              d.NameChain,
-              d.SubModelSeqBindingName,
-              d.Id,
-              binder.Name
-            )
-          | GetError.ToNullError (ValueOption.ToNullError.ValueCannotBeNull nonNullTypeName) ->
-            log.LogError(
-              "[{BindingNameChain}] TryGetMember FAILED: Binding {BindingName} is null, but type {Type} is non-nullable",
-              nameChain,
-              binder.Name,
-              nonNullTypeName
-            )
-
-          false
-      with
-      | e ->
-        log.LogError(
-          e,
-          "[{BindingNameChain}] TryGetMember FAILED: Exception thrown while processing binding {BindingName}",
-          nameChain,
-          binder.Name
-        )
-
-        reraise ()
-
-  override _.TrySetMember(binder, value) =
-    log.LogTrace("[{BindingNameChain}] TrySetMember {BindingName}", nameChain, binder.Name)
-
-    match bindings.TryGetValue binder.Name with
-    | false, _ ->
-      log.LogError(
-        "[{BindingNameChain}] TrySetMember FAILED: Property {BindingName} doesn't exist",
-        nameChain,
-        binder.Name
-      )
-
-      false
-    | true, binding ->
-      try
-        let success = Set(value).Recursive(helper.Model, binding)
-
-        if not success then
-          log.LogError(
-            "[{BindingNameChain}] TrySetMember FAILED: Binding {BindingName} is read-only",
-            nameChain,
-            binder.Name
-          )
-
-        success
-      with
-      | e ->
-        log.LogError(
-          e,
-          "[{BindingNameChain}] TrySetMember FAILED: Exception thrown while processing binding {BindingName}",
-          nameChain,
-          binder.Name
-        )
-
-        reraise ()
-
-  override _.GetDynamicMemberNames() =
-    log.LogTrace("[{BindingNameChain}] GetDynamicMemberNames", nameChain)
-    bindings.Keys
 
   interface IDynamicViewModel with
     member _.GetMemberByName(binderName: string) =

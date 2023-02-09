@@ -1,22 +1,18 @@
 ﻿namespace Elmish.Avalonia
 
 open System
-open System.Collections.Generic
 open System.ComponentModel
-open System.Diagnostics.Contracts
-open Avalonia.Data
 open Avalonia.Data.Core.Plugins
 open Avalonia.Utilities
 
 type AvaloniaDynamicPropertyAccessorPlugin() =
     interface IPropertyAccessorPlugin with
         member __.Match(obj, _) =
-          //obj :? IDictionary<string, obj> // ExpandoObject
-          obj :? IDynamicViewModel
+            obj :? IDynamicViewModel
 
-        member __.Start(reference, propertyName) = 
-            Contract.Requires<ArgumentNullException>(reference <> null)
-            Contract.Requires<ArgumentNullException>(propertyName <> null)
+        member __.Start(reference, propertyName) =
+            if isNull reference then nullArg (nameof reference)
+            if isNull propertyName then nullArg (nameof propertyName)
             new Accessor(reference, propertyName)
 
 and Accessor(reference : WeakReference<obj>, property : string) = 
@@ -47,11 +43,6 @@ and Accessor(reference : WeakReference<obj>, property : string) =
             match target with
             | :? IDynamicViewModel as vm ->
                 vm.GetMemberByName(property)
-            
-            | :? IDictionary<string, obj> as o -> // ExpandoObject
-                match o.TryGetValue(property) with
-                | true, value -> value
-                | _ -> null
             | _ -> null
         | _ -> null
 
@@ -61,9 +52,6 @@ and Accessor(reference : WeakReference<obj>, property : string) =
             match target with
             | :? IDynamicViewModel as vm ->
                 vm.SetMemberByName(property, value)
-                true
-            | :? IDictionary<string, obj> as o -> 
-                o.[property] <- value
                 true
             | _ -> false
         | _ -> false
@@ -111,9 +99,9 @@ and Accessor(reference : WeakReference<obj>, property : string) =
 
 module AppBuilder =
 
-  type Avalonia.AppBuilder with
+    type Avalonia.AppBuilder with
 
     /// Uses the Elmish.Avalonia bindings.
     member appBuilder.UseElmishBindings() =
-      BindingPlugins.PropertyAccessors.Add(AvaloniaDynamicPropertyAccessorPlugin())
-      appBuilder
+        BindingPlugins.PropertyAccessors.Add(AvaloniaDynamicPropertyAccessorPlugin())
+        appBuilder
