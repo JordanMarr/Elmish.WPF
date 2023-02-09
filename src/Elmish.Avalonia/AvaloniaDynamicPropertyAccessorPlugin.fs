@@ -108,3 +108,12 @@ and Accessor(reference : WeakReference<obj>, property : string) =
                 //    (fun sender e ->()))
             | _ -> ()
         | _ -> ()
+
+module AppBuilder =
+
+  type Avalonia.AppBuilder with
+
+    /// Uses the Elmish.Avalonia bindings.
+    member appBuilder.UseElmishBindings() =
+      BindingPlugins.PropertyAccessors.Add(AvaloniaDynamicPropertyAccessorPlugin())
+      appBuilder

@@ -2,8 +2,8 @@
 
 open System
 open Avalonia
-//open Avalonia.ReactiveUI
 open AvaloniaExample
+open Elmish.Avalonia.AppBuilder
 
 module Program =
 
@@ -13,7 +13,7 @@ module Program =
             .Configure<App>()
             .UsePlatformDetect()
             .LogToTrace(areas = Array.empty)
-            //.UseReactiveUI()
+            .UseElmishBindings()
 
     [<EntryPoint; STAThread>]
     let main argv =
