@@ -25,8 +25,7 @@ type App() =
             //MainWindow(DataContext = MainWindowViewModel())
             //MainWindow(DataContext = MyVM())
 
-            Avalonia.Data.Core.ExpressionObserver.PropertyAccessors.Add(new Elmish.Avalonia.AvaloniaDynamicPropertyAccessorPlugin())        // preview4
-            //Avalonia.Data.Core.Plugins.BindingPlugins.PropertyAccessors.Add(new Elmish.Avalonia.AvaloniaDynamicPropertyAccessorPlugin())  // preview5
+            Avalonia.Data.Core.Plugins.BindingPlugins.PropertyAccessors.Add(new Elmish.Avalonia.AvaloniaDynamicPropertyAccessorPlugin())
 
             //let myVM = MyVM()
 
