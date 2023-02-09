@@ -5,13 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaExample.Views.MainView"
-        Design.DataContext="{Binding RelativeSource={RelativeSource Self}, Path=DesignVM}"
+        Design.DataContext="{Binding Source={x:Static vm:MainViewModel.designVM}}"
         Icon="/Assets/avalonia-logo.ico"
         Title="AvaloniaExample">
-
-    <!--<Design.DataContext>
-        <vm:MainViewModel />
-    </Design.DataContext>-->
 
     <StackPanel>
         <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
