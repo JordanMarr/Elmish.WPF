@@ -81,6 +81,8 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Elmish.WPF.Benchmarks", "El
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Elmish.Avalonia", "Elmish.Avalonia\Elmish.Avalonia.fsproj", "{41E3DA5D-6DB0-408E-813E-97138AC0F703}"
 EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "AvaloniaExample", "Samples\AvaloniaExample\AvaloniaExample.fsproj", "{C6CD8FA6-98A0-4DAC-B5B9-3A49862D9EDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -223,6 +225,10 @@ Global
 		{41E3DA5D-6DB0-408E-813E-97138AC0F703}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41E3DA5D-6DB0-408E-813E-97138AC0F703}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41E3DA5D-6DB0-408E-813E-97138AC0F703}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6CD8FA6-98A0-4DAC-B5B9-3A49862D9EDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6CD8FA6-98A0-4DAC-B5B9-3A49862D9EDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6CD8FA6-98A0-4DAC-B5B9-3A49862D9EDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6CD8FA6-98A0-4DAC-B5B9-3A49862D9EDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -258,6 +264,7 @@ Global
 		{BDA46408-691C-47FA-8670-92A5D04663EB} = {BBAFEB1E-93C0-4C7E-8E0A-026BB05C88EC}
 		{57EB1D0A-9182-4A7F-818B-8FDCA58D7321} = {BBAFEB1E-93C0-4C7E-8E0A-026BB05C88EC}
 		{DFF15AD9-337E-4301-9A05-5CFA147C457E} = {BBAFEB1E-93C0-4C7E-8E0A-026BB05C88EC}
+		{C6CD8FA6-98A0-4DAC-B5B9-3A49862D9EDC} = {BBAFEB1E-93C0-4C7E-8E0A-026BB05C88EC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3125D461-08F4-4071-AAE5-1038EF84A360}
