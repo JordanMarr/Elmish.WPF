@@ -7,6 +7,12 @@ open AvaloniaExample.Views
 type App() =
     inherit Application()
 
-    override this.Initialize() =        
+    override this.Initialize() =
         AvaloniaXamlLoader.Load(this)
-        MainView() |> ViewModels.MainViewModel.run
+
+    override this.OnFrameworkInitializationCompleted() =
+        // Start app only if not IsDesignMode (messes up axaml designer preview)
+        if not Avalonia.Controls.Design.IsDesignMode
+        then MainView() |> ViewModels.MainViewModel.run
+
+        base.OnFrameworkInitializationCompleted()

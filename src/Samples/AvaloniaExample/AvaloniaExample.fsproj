@@ -7,8 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
+        <AvaloniaXaml Remove="Models\**" />
+        <EmbeddedResource Remove="Models\**" />
         <None Remove=".gitignore" />
     </ItemGroup>
 
