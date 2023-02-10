@@ -147,7 +147,8 @@ module AvaloniaProgram =
     initializeApplication window
     startElmishLoop window program
     window.Show ()
-    Application.Current.Run window
+    if not Design.IsDesignMode then // (to avoid breaking the .axaml designer preview)
+      Application.Current.Run window
 
 
   /// Same as mkProgram, except that init and update don't return Cmd<'msg>
