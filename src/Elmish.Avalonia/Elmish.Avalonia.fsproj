@@ -47,7 +47,7 @@
     <Compile Include="DynamicViewModel.fs" />
     <Compile Include="Binding.fs" />
     <Compile Include="ViewModelModule.fs" />
-    <Compile Include="AvaloniaDynamicPropertyAccessorPlugin.fs" />
+    <Compile Include="AvaloniaPropertyAccessorPlugin.fs" />
     <Compile Include="AvaloniaProgram.fs" />
   </ItemGroup>
 

@@ -5,7 +5,7 @@ open System.ComponentModel
 open Avalonia.Data.Core.Plugins
 open Avalonia.Utilities
 
-type AvaloniaDynamicPropertyAccessorPlugin() =
+type AvaloniaPropertyAccessorPlugin() =
     interface IPropertyAccessorPlugin with
         member __.Match(obj, _) =
             obj :? IDynamicViewModel
@@ -87,5 +87,5 @@ module AppBuilder =
 
     /// Uses the Elmish.Avalonia bindings.
     member appBuilder.UseElmishBindings() =
-        BindingPlugins.PropertyAccessors.Add(AvaloniaDynamicPropertyAccessorPlugin())
+        BindingPlugins.PropertyAccessors.Add(AvaloniaPropertyAccessorPlugin())
         appBuilder
