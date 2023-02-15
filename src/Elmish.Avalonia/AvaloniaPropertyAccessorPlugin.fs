@@ -5,10 +5,11 @@ open System.ComponentModel
 open Avalonia.Data.Core.Plugins
 open Avalonia.Utilities
 
+/// Allows DictionaryViewModel to be bound to Avalonia views.
 type AvaloniaPropertyAccessorPlugin() =
     interface IPropertyAccessorPlugin with
         member __.Match(obj, _) =
-            obj :? IDynamicViewModel
+            obj :? IDictionaryViewModel
 
         member __.Start(reference, propertyName) =
             if isNull reference then nullArg (nameof reference)
@@ -34,7 +35,7 @@ and Accessor(reference : WeakReference<obj>, property : string) =
         match reference.TryGetTarget() with
         | true, target -> 
             match target with
-            | :? IDynamicViewModel as vm ->
+            | :? IDictionaryViewModel as vm ->
                 vm.GetMemberByName(property)
             | _ -> null
         | _ -> null
@@ -43,7 +44,7 @@ and Accessor(reference : WeakReference<obj>, property : string) =
         match reference.TryGetTarget() with 
         | true, target -> 
             match target with
-            | :? IDynamicViewModel as vm ->
+            | :? IDictionaryViewModel as vm ->
                 vm.SetMemberByName(property, value)
                 true
             | _ -> false

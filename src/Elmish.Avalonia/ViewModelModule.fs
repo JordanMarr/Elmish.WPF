@@ -4,4 +4,4 @@
 let designInstance (model: 'model) (bindings: Binding<'model, 'msg> list) =
   let args = ViewModelArgs.simple model
 
-  DynamicViewModel(args, bindings) |> box
+  DictionaryViewModel(args, bindings) |> box

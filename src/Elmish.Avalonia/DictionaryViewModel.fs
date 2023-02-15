@@ -111,12 +111,12 @@ module internal ViewModelHelper =
       | PropertyChanged name -> raisePropertyChanged name
       | CanExecuteChanged cmd -> cmd |> raiseCanExecuteChanged)
 
-type [<AllowNullLiteral>] internal IDynamicViewModel =
+type [<AllowNullLiteral>] internal IDictionaryViewModel =
     abstract member GetMemberByName: string -> obj
     abstract member SetMemberByName: string * obj -> unit
 
 [<AllowNullLiteral>]
-type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, bindings: Binding<'model, 'msg> list) as this =
+type internal DictionaryViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, bindings: Binding<'model, 'msg> list) as this =
 
   let { initialModel = initialModel
         dispatch = dispatch
@@ -187,7 +187,7 @@ type internal DynamicViewModel<'model, 'msg>(args: ViewModelArgs<'model, 'msg>, 
       helper <- { helper with Model = newModel }
       ViewModelHelper.raiseEvents eventsToRaise helper
 
-  interface IDynamicViewModel with
+  interface IDictionaryViewModel with
     member _.GetMemberByName(binderName: string) =
       log.LogTrace("[{BindingNameChain}] TryGetMember {BindingName}", nameChain, binderName)
 

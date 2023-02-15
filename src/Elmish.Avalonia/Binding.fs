@@ -231,7 +231,7 @@ module Binding =
     let vopt (bindings: unit -> Binding<'model, 'msg> list)
         : string -> Binding<'model voption, 'msg> =
       SubModel.create
-        (fun args -> DynamicViewModel<'model, 'msg>(args, bindings ()))
+        (fun args -> DictionaryViewModel<'model, 'msg>(args, bindings ()))
         IViewModel.updateModel
       |> createBinding
 
@@ -2049,7 +2049,7 @@ type Binding private () =
   //    : string -> Binding<'model, 'msg> =
   //  Binding.SubModelWin.create
   //    (fun m -> getState m |> WindowState.map (fun sub -> toBindingModel (m, sub)))
-  //    (fun args -> DynamicViewModel<'bindingModel, 'bindingMsg>(args, bindings ()))
+  //    (fun args -> DictionaryViewModel<'bindingModel, 'bindingMsg>(args, bindings ()))
   //    IViewModel.updateModel
   //    (fun _ -> toMsg)
   //    (fun m d -> upcast getWindow m d)
@@ -2164,7 +2164,7 @@ type Binding private () =
   //    : string -> Binding<'model, 'msg> =
   //  Binding.SubModelWin.create
   //    (fun m -> getState m |> WindowState.map (fun sub -> (m, sub)))
-  //    (fun args -> DynamicViewModel<'model * 'subModel, 'subMsg>(args, bindings ()))
+  //    (fun args -> DictionaryViewModel<'model * 'subModel, 'subMsg>(args, bindings ()))
   //    IViewModel.updateModel
   //    (fun _ -> toMsg)
   //    (fun m d -> upcast getWindow m d)
@@ -2265,7 +2265,7 @@ type Binding private () =
   //    : string -> Binding<'model, 'msg> =
   //  Binding.SubModelWin.create
   //    (fun m -> getState m |> WindowState.map (fun sub -> (m, sub)))
-  //    (fun args -> DynamicViewModel<'model * 'subModel, 'msg>(args, bindings ()))
+  //    (fun args -> DictionaryViewModel<'model * 'subModel, 'msg>(args, bindings ()))
   //    IViewModel.updateModel
   //    (fun _ -> id)
   //    (fun m d -> upcast getWindow m d)
@@ -2323,7 +2323,7 @@ type Binding private () =
       (getBindings: unit -> Binding<'model, 'msg> list)
       : string -> Binding<'model seq, int * 'msg> =
     Binding.SubModelSeqUnkeyed.create
-      (fun args -> DynamicViewModel<'model, 'msg>(args, getBindings ()))
+      (fun args -> DictionaryViewModel<'model, 'msg>(args, getBindings ()))
       IViewModel.updateModel
 
   static member subModelSeq // TODO: make into function
@@ -2331,7 +2331,7 @@ type Binding private () =
        getId: 'model -> 'id)
       : string -> Binding<'model seq, 'id * 'msg> =
     Binding.SubModelSeqKeyed.create
-      (fun args -> DynamicViewModel<'model, 'msg>(args, getBindings ()))
+      (fun args -> DictionaryViewModel<'model, 'msg>(args, getBindings ()))
       IViewModel.updateModel
       getId
       (IViewModel.currentModel >> getId)
@@ -2363,7 +2363,7 @@ type Binding private () =
        bindings: unit -> Binding<'bindingModel, 'bindingMsg> list)
       : string -> Binding<'model, 'msg> =
     Binding.SubModelSeqKeyed.create
-      (fun args -> DynamicViewModel<'bindingModel, 'bindingMsg>(args, bindings ()))
+      (fun args -> DictionaryViewModel<'bindingModel, 'bindingMsg>(args, bindings ()))
       IViewModel.updateModel
       getId
       (IViewModel.currentModel >> getId)
@@ -2393,7 +2393,7 @@ type Binding private () =
        bindings: unit -> Binding<'model * 'subModel, 'subMsg> list)
       : string -> Binding<'model, 'msg> =
     Binding.SubModelSeqKeyed.create
-      (fun args -> DynamicViewModel<'model * 'subModel, 'subMsg>(args, bindings ()))
+      (fun args -> DictionaryViewModel<'model * 'subModel, 'subMsg>(args, bindings ()))
       IViewModel.updateModel
       (snd >> getId)
       (IViewModel.currentModel >> snd >> getId)
@@ -2417,7 +2417,7 @@ type Binding private () =
        bindings: unit -> Binding<'model * 'subModel, 'msg> list)
       : string -> Binding<'model, 'msg> =
     Binding.SubModelSeqKeyed.create
-      (fun args -> DynamicViewModel<'model * 'subModel, 'msg>(args, bindings ()))
+      (fun args -> DictionaryViewModel<'model * 'subModel, 'msg>(args, bindings ()))
       IViewModel.updateModel
       (snd >> getId)
       (IViewModel.currentModel >> snd >> getId)

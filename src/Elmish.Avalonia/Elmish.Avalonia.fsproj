@@ -44,7 +44,7 @@
     <Compile Include="ViewModelArgs.fs" />
     <Compile Include="BindingData.fs" />
     <Compile Include="BindingVmHelpers.fs" />
-    <Compile Include="DynamicViewModel.fs" />
+    <Compile Include="DictionaryViewModel.fs" />
     <Compile Include="Binding.fs" />
     <Compile Include="ViewModelModule.fs" />
     <Compile Include="AvaloniaPropertyAccessorPlugin.fs" />

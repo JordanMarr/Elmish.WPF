@@ -88,7 +88,7 @@ module AvaloniaProgram =
                   nameChain = "main"
                   log = bindingsLogger
                   logPerformance = performanceLogger } }
-          let vm = DynamicViewModel<'model, 'msg>(args, program.Bindings)
+          let vm = DictionaryViewModel<'model, 'msg>(args, program.Bindings)
           element.DataContext <- vm
           viewModel <- Some vm
       | Some vm ->
