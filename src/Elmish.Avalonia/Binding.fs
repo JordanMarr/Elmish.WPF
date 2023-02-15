@@ -2038,23 +2038,23 @@ type Binding private () =
   ///   window.ShowDialog, blocking the rest of the app) or non-modally (using
   ///   window.Show).
   /// </param>
-  //static member subModelWin
-  //    (getState: 'model -> WindowState<'subModel>,
-  //     toBindingModel: 'model * 'subModel -> 'bindingModel,
-  //     toMsg: 'bindingMsg -> 'msg,
-  //     bindings: unit -> Binding<'bindingModel, 'bindingMsg> list,
-  //     getWindow: 'model -> Dispatch<'msg> -> #Window,
-  //     ?onCloseRequested: 'msg,
-  //     ?isModal: bool)
-  //    : string -> Binding<'model, 'msg> =
-  //  Binding.SubModelWin.create
-  //    (fun m -> getState m |> WindowState.map (fun sub -> toBindingModel (m, sub)))
-  //    (fun args -> DictionaryViewModel<'bindingModel, 'bindingMsg>(args, bindings ()))
-  //    IViewModel.updateModel
-  //    (fun _ -> toMsg)
-  //    (fun m d -> upcast getWindow m d)
-  //    (defaultArg isModal false)
-  //    (fun _ -> defaultArg (onCloseRequested |> Option.map ValueSome) ValueNone)
+  static member subModelWin
+      (getState: 'model -> WindowState<'subModel>,
+       toBindingModel: 'model * 'subModel -> 'bindingModel,
+       toMsg: 'bindingMsg -> 'msg,
+       bindings: unit -> Binding<'bindingModel, 'bindingMsg> list,
+       getWindow: 'model -> Dispatch<'msg> -> #Window,
+       ?onCloseRequested: 'msg,
+       ?isModal: bool)
+      : string -> Binding<'model, 'msg> =
+    Binding.SubModelWin.create
+      (fun m -> getState m |> WindowState.map (fun sub -> toBindingModel (m, sub)))
+      (fun args -> DictionaryViewModel<'bindingModel, 'bindingMsg>(args, bindings ()))
+      IViewModel.updateModel
+      (fun _ -> toMsg)
+      (fun m d -> upcast getWindow m d)
+      (defaultArg isModal false)
+      (fun _ -> defaultArg (onCloseRequested |> Option.map ValueSome) ValueNone)
 
 
   /// <summary>
@@ -2099,24 +2099,24 @@ type Binding private () =
   ///   window.ShowDialog, blocking the rest of the app) or non-modally (using
   ///   window.Show).
   /// </param>
-  //static member subModelWin
-  //    (getState: 'model -> WindowState<'subModel>,
-  //     toBindingModel: 'model * 'subModel -> 'bindingModel,
-  //     toMsg: 'bindingMsg -> 'msg,
-  //     bindings: unit -> Binding<'bindingModel, 'bindingMsg> list,
-  //     getWindow: unit -> #Window,
-  //     ?onCloseRequested: 'msg,
-  //     ?isModal: bool)
-  //    : string -> Binding<'model, 'msg> =
-  //  Binding.subModelWin(
-  //    getState,
-  //    toBindingModel,
-  //    toMsg,
-  //    bindings,
-  //    (fun _ _ -> getWindow ()),
-  //    ?onCloseRequested = onCloseRequested,
-  //    ?isModal = isModal
-  //  )
+  static member subModelWin
+      (getState: 'model -> WindowState<'subModel>,
+       toBindingModel: 'model * 'subModel -> 'bindingModel,
+       toMsg: 'bindingMsg -> 'msg,
+       bindings: unit -> Binding<'bindingModel, 'bindingMsg> list,
+       getWindow: unit -> #Window,
+       ?onCloseRequested: 'msg,
+       ?isModal: bool)
+      : string -> Binding<'model, 'msg> =
+    Binding.subModelWin(
+      getState,
+      toBindingModel,
+      toMsg,
+      bindings,
+      (fun _ _ -> getWindow ()),
+      ?onCloseRequested = onCloseRequested,
+      ?isModal = isModal
+    )
 
 
   /// <summary>
@@ -2154,22 +2154,22 @@ type Binding private () =
   ///   window.ShowDialog, blocking the rest of the app) or non-modally (using
   ///   window.Show).
   /// </param>
-  //static member subModelWin
-  //    (getState: 'model -> WindowState<'subModel>,
-  //     toMsg: 'subMsg -> 'msg,
-  //     bindings: unit -> Binding<'model * 'subModel, 'subMsg> list,
-  //     getWindow: 'model -> Dispatch<'msg> -> #Window,
-  //     ?onCloseRequested: 'msg,
-  //     ?isModal: bool)
-  //    : string -> Binding<'model, 'msg> =
-  //  Binding.SubModelWin.create
-  //    (fun m -> getState m |> WindowState.map (fun sub -> (m, sub)))
-  //    (fun args -> DictionaryViewModel<'model * 'subModel, 'subMsg>(args, bindings ()))
-  //    IViewModel.updateModel
-  //    (fun _ -> toMsg)
-  //    (fun m d -> upcast getWindow m d)
-  //    (defaultArg isModal false)
-  //    (fun _ -> defaultArg (onCloseRequested |> Option.map ValueSome) ValueNone)
+  static member subModelWin
+      (getState: 'model -> WindowState<'subModel>,
+       toMsg: 'subMsg -> 'msg,
+       bindings: unit -> Binding<'model * 'subModel, 'subMsg> list,
+       getWindow: 'model -> Dispatch<'msg> -> #Window,
+       ?onCloseRequested: 'msg,
+       ?isModal: bool)
+      : string -> Binding<'model, 'msg> =
+    Binding.SubModelWin.create
+      (fun m -> getState m |> WindowState.map (fun sub -> (m, sub)))
+      (fun args -> DictionaryViewModel<'model * 'subModel, 'subMsg>(args, bindings ()))
+      IViewModel.updateModel
+      (fun _ -> toMsg)
+      (fun m d -> upcast getWindow m d)
+      (defaultArg isModal false)
+      (fun _ -> defaultArg (onCloseRequested |> Option.map ValueSome) ValueNone)
 
 
   /// <summary>
@@ -2207,22 +2207,22 @@ type Binding private () =
   ///   window.ShowDialog, blocking the rest of the app) or non-modally (using
   ///   window.Show).
   /// </param>
-  //static member subModelWin
-  //    (getState: 'model -> WindowState<'subModel>,
-  //     toMsg: 'subMsg -> 'msg,
-  //     bindings: unit -> Binding<'model * 'subModel, 'subMsg> list,
-  //     getWindow: unit -> #Window,
-  //     ?onCloseRequested: 'msg,
-  //     ?isModal: bool)
-  //    : string -> Binding<'model, 'msg> =
-  //  Binding.subModelWin(
-  //    getState,
-  //    toMsg,
-  //    bindings,
-  //    (fun _ _ -> getWindow ()),
-  //    ?onCloseRequested = onCloseRequested,
-  //    ?isModal = isModal
-  //  )
+  static member subModelWin
+      (getState: 'model -> WindowState<'subModel>,
+       toMsg: 'subMsg -> 'msg,
+       bindings: unit -> Binding<'model * 'subModel, 'subMsg> list,
+       getWindow: unit -> #Window,
+       ?onCloseRequested: 'msg,
+       ?isModal: bool)
+      : string -> Binding<'model, 'msg> =
+    Binding.subModelWin(
+      getState,
+      toMsg,
+      bindings,
+      (fun _ _ -> getWindow ()),
+      ?onCloseRequested = onCloseRequested,
+      ?isModal = isModal
+    )
 
 
   /// <summary>
@@ -2256,21 +2256,21 @@ type Binding private () =
   ///   window.ShowDialog, blocking the rest of the app) or non-modally (using
   ///   window.Show).
   /// </param>
-  //static member subModelWin
-  //    (getState: 'model -> WindowState<'subModel>,
-  //     bindings: unit -> Binding<'model * 'subModel, 'msg> list,
-  //     getWindow: 'model -> Dispatch<'msg> -> #Window,
-  //     ?onCloseRequested: 'msg,
-  //     ?isModal: bool)
-  //    : string -> Binding<'model, 'msg> =
-  //  Binding.SubModelWin.create
-  //    (fun m -> getState m |> WindowState.map (fun sub -> (m, sub)))
-  //    (fun args -> DictionaryViewModel<'model * 'subModel, 'msg>(args, bindings ()))
-  //    IViewModel.updateModel
-  //    (fun _ -> id)
-  //    (fun m d -> upcast getWindow m d)
-  //    (defaultArg isModal false)
-  //    (fun _ -> defaultArg (onCloseRequested |> Option.map ValueSome) ValueNone)
+  static member subModelWin
+      (getState: 'model -> WindowState<'subModel>,
+       bindings: unit -> Binding<'model * 'subModel, 'msg> list,
+       getWindow: 'model -> Dispatch<'msg> -> #Window,
+       ?onCloseRequested: 'msg,
+       ?isModal: bool)
+      : string -> Binding<'model, 'msg> =
+    Binding.SubModelWin.create
+      (fun m -> getState m |> WindowState.map (fun sub -> (m, sub)))
+      (fun args -> DictionaryViewModel<'model * 'subModel, 'msg>(args, bindings ()))
+      IViewModel.updateModel
+      (fun _ -> id)
+      (fun m d -> upcast getWindow m d)
+      (defaultArg isModal false)
+      (fun _ -> defaultArg (onCloseRequested |> Option.map ValueSome) ValueNone)
 
 
   /// <summary>
@@ -2304,20 +2304,20 @@ type Binding private () =
   ///   window.ShowDialog, blocking the rest of the app) or non-modally (using
   ///   window.Show).
   /// </param>
-  //static member subModelWin
-  //    (getState: 'model -> WindowState<'subModel>,
-  //     bindings: unit -> Binding<'model * 'subModel, 'msg> list,
-  //     getWindow: unit -> #Window,
-  //     ?onCloseRequested: 'msg,
-  //     ?isModal: bool)
-  //    : string -> Binding<'model, 'msg> =
-  //  Binding.subModelWin(
-  //    getState,
-  //    bindings,
-  //    (fun _ _ -> getWindow ()),
-  //    ?onCloseRequested = onCloseRequested,
-  //    ?isModal = isModal
-  //  )
+  static member subModelWin
+      (getState: 'model -> WindowState<'subModel>,
+       bindings: unit -> Binding<'model * 'subModel, 'msg> list,
+       getWindow: unit -> #Window,
+       ?onCloseRequested: 'msg,
+       ?isModal: bool)
+      : string -> Binding<'model, 'msg> =
+    Binding.subModelWin(
+      getState,
+      bindings,
+      (fun _ _ -> getWindow ()),
+      ?onCloseRequested = onCloseRequested,
+      ?isModal = isModal
+    )
 
   static member subModelSeq // TODO: make into function
       (getBindings: unit -> Binding<'model, 'msg> list)
